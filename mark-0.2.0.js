@@ -1,5 +1,4 @@
 (function () {
-
     var modules = {},
         events = {},
         callbacks = {},
@@ -52,7 +51,7 @@
     }
 
     function getModule(name) {
-        return modules[name] = modules[name]? modules[name] : { name: name, status: STATUS_NOT_LOADED, options: {} };
+        return modules[name] = modules[name]? modules[name] : { name: name, status: STATUS_NOT_LOADED };
     }
 
     function addCallback(event, fn) {
@@ -64,16 +63,40 @@
     }
 
     function justLoad(m) {
+        var markPathFinder = callbacks[MARK_PATH],
+            markProtocolFinder = callbacks[MARK_PROTOCOL],
+            //name = m.name;
+            protocol;
+
+        if (!isFunction(markPathFinder)) {
+            throw "function for event '" + MARK_PATH + "' is not defined.";
+        }
+
+        m.path = markPathFinder(m.name);
+
+        if (!isFunction(markProtocolFinder)) {
+            throw "function for event '" + MARK_PROTOCOL + "' is not defined.";
+        }
+
+        m.protocol = markProtocolFinder(m.name, m.path);
+
+        protocol = callbacks['protocol:' + m.protocol];
+
+        if (!isFunction(protocol)) {
+            throw "function for protocol '" + m.protocol + "' is not defined.";
+        }
+
+
         async(protocol, [m.path], {
             done: function (content) {
                 if (m.attach) {
                     m.obj = window[m.attach];
                     m.status = STATUS_LOADED;
-                    trigger(name, [name]);
+                    trigger(m.name, [m.name]);
                 } else if (content) {
                     m.obj = content;
                     m.status = STATUS_LOADED;
-                    trigger(name, [name]);
+                    trigger(m.name, [m.name]);
                 }
             },
             failed: function (message) {
@@ -104,18 +127,15 @@
         if (this.counter == 0) {
             if (!this.attach) {
                 this.obj = this.fn.apply(null, this.args);
+                trigger(this.name, [this.name]);
             } else {
                 justLoad(this);
             }
-            trigger(name, [name]);
         }
     }
 
     function load(name) {
         var m = getModule(name),
-            markPathFinder,
-            markProtocolFinder,
-            protocol,
             i;
 
         switch (m.status) {
@@ -123,34 +143,13 @@
                 trigger(name, [name]);
                 break;
             case STATUS_NOT_LOADED:
-                markPathFinder = callbacks[MARK_PATH];
-                markProtocolFinder = callbacks[MARK_PROTOCOL];
-
-                if (!isFunction(markPathFinder)) {
-                    throw "function for event '" + MARK_PATH + "' is not defined.";
-                }
-
-                m.path = markPathFinder(name);
-
-                if (!isFunction(markProtocolFinder)) {
-                    throw "function for event '" + MARK_PROTOCOL + "' is not defined.";
-                }
-
-                m.protocol = markProtocolFinder(name, m.path);
-
-                protocol = callbacks['protocol:' + m.protocol];
-
-                if (!isFunction(protocol)) {
-                    throw "function for protocol '" + m.protocol + "' is not defined.";
-                }
-
                 if (m.attach && m.counter != 0) {
                     for (i = 0; i < m.counter; i++) {
                         listenTo(m.args[i], counterCallback, m);
                         async(load, [m.args[i]]);
                     }
                 } else {
-                    justLoad(protocol, m);
+                    justLoad(m);
                 }
                 break;
         }
@@ -158,8 +157,6 @@
 
     function addGlobal(name, dependencies, attach) {
         var m = getModule(name);
-
-        //check if the global value is not added
         if (!m.args) {
             m.args = dependencies;
             m.counter = m.args.length;
