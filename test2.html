@@ -1,0 +1,62 @@
+<html>
+    <head>
+        <title>Test Cases for Mark 0.2.0</title>
+        <script type="text/javascript" src="mark-0.2.0.min.js"></script>
+    </head>
+    <body>
+
+        <script type="text/javascript">
+            mark("mark:path", function (name) {
+                console.log("mark:path is called, with '" + name + "'");
+                return "js/" + name.toLowerCase() + ".js";
+            });
+
+            mark("mark:protocol", function (name, path) {
+                console.log("mark:protocol is called, for name: '" + name + "' and path: '" + path + "'");
+                return 'scriptTag';
+            });
+
+            mark("protocol:scriptTag", function (path) {
+                var that = this,
+                    script = document.createElement('script');
+
+                script.async = true;
+                script.setAttribute('type', 'text/javascript');
+
+                //IE callback specific
+                script.onreadystatechange = function () {
+                    if (this.readyState == 'loaded') {
+                        that.done();
+                    }
+                };
+
+                //other browsers callback
+                script.onload = function () {
+                    that.done();
+                };
+
+                script.onerror = function () {
+                    that.failed();
+                };
+
+                script.src = path;
+
+                //append script tag to dom
+                document.documentElement.appendChild(script);
+            });
+
+
+            mark('jQuery', ['json']);
+            mark('json');
+            mark('Underscore', '_');
+            mark('Backbone', ['jQuery', 'Underscore']);
+
+
+            mark("Main", ["Ali"], function (Ali) {
+                console.log("Main is executed.");
+                console.log("Ali's value is: " + Ali);
+            });
+
+        </script>
+    </body>
+</html>
