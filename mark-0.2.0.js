@@ -62,23 +62,32 @@
         }
     }
 
-    function justLoad(m) {
+    function updateProtocolPath(m) {
         var markPathFinder = callbacks[MARK_PATH],
             markProtocolFinder = callbacks[MARK_PROTOCOL],
-            //name = m.name;
-            protocol;
+            name = m.name;
 
         if (!isFunction(markPathFinder)) {
             throw "function for event '" + MARK_PATH + "' is not defined.";
         }
 
-        m.path = markPathFinder(m.name);
+        m.path = markPathFinder(name);
 
         if (!isFunction(markProtocolFinder)) {
             throw "function for event '" + MARK_PROTOCOL + "' is not defined.";
         }
 
-        m.protocol = markProtocolFinder(m.name, m.path);
+        m.protocol = markProtocolFinder(name, m.path);
+
+    }
+
+    function justLoad(m) {
+        var name = m.name,
+            protocol;
+
+        if (!m.path) {
+            updateProtocolPath(m);
+        }
 
         protocol = callbacks['protocol:' + m.protocol];
 
@@ -86,17 +95,16 @@
             throw "function for protocol '" + m.protocol + "' is not defined.";
         }
 
-
         async(protocol, [m.path], {
             done: function (content) {
                 if (m.attach) {
                     m.obj = window[m.attach];
                     m.status = STATUS_LOADED;
-                    trigger(m.name, [m.name]);
+                    trigger(name, [name]);
                 } else if (content) {
                     m.obj = content;
                     m.status = STATUS_LOADED;
-                    trigger(m.name, [m.name]);
+                    trigger(name, [name]);
                 }
             },
             failed: function (message) {
