@@ -1,16 +1,21 @@
+/** @preserve mark.js: Tiny/Open framework for managing dependencies in JavaScript
+ * version: 0.2.0
+ * By Ali Najafizadeh
+ * MIT Licensed.
+ */
 (function () {
     var modules = {},
         events = {},
         callbacks = {},
 
-        STATUS_NOT_LOADED = "not_loaded",
-        STATUS_LOADED = "loaded",
-        STATUS_LOADING = "loading",
+        STATUS_NOT_LOADED                   = "not_loaded",
+        STATUS_LOADED                       = "loaded",
+        STATUS_LOADING                      = "loading",
 
-        MARK_PATH = "mark:path",
-        MARK_PROTOCOL = "mark:protocol",
+        MARK_PATH                           = "mark:path",
+        MARK_PROTOCOL                       = "mark:protocol",
 
-        THROW_UNKNOWN_FUNCTION_ARGUMENTS = "unknown signature for mark function.";
+        THROW_UNKNOWN_FUNCTION_ARGUMENTS    = "unknown signature for mark function.";
 
     function async(fn, args, context) {
         setTimeout(function () {
@@ -78,7 +83,6 @@
         }
 
         m.protocol = markProtocolFinder(name, m.path);
-
     }
 
     function justLoad(m) {
@@ -135,6 +139,7 @@
         if (this.counter == 0) {
             if (!this.attach) {
                 this.obj = this.fn.apply(null, this.args);
+                this.status = STATUS_LOADED;
                 trigger(this.name, [this.name]);
             } else {
                 justLoad(this);
@@ -224,11 +229,25 @@
                 }
                 break;
             case 3:
-                if (isString(one) && isArray(two)) {
-                    if (isString(three)) {
-                        addGlobal(one, two, three);
-                    } else if (isFunction(three)) {
-                        addModule(one, two, three);
+                if (isString(one)) {
+                    if (isArray(two)) {
+                        if (isString(three)) {
+                            addGlobal(one, two, three);
+                        } else if (isFunction(three)) {
+                            addModule(one, two, three);
+                        } else {
+                            throw THROW_UNKNOWN_FUNCTION_ARGUMENTS;
+                        }
+                    } else if (isString(two) && isFunction(three)) {
+                        if (one == "load") {
+                            listenTo(two, function() {
+                                var m = getModule(two);
+                                three.call(null, m.obj);
+                            });
+                            async(load, [two]);
+                        } else {
+                            throw "internal function is not defined.";
+                        }
                     } else {
                         throw THROW_UNKNOWN_FUNCTION_ARGUMENTS;
                     }
@@ -240,6 +259,6 @@
                 throw THROW_UNKNOWN_FUNCTION_ARGUMENTS;
         }
     }
-
+    mark.VERSION = "0.2.0";
     window.mark = mark;
 }());
