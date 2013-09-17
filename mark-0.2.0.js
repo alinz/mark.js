@@ -199,7 +199,7 @@
                 trigger(name, [name]);
             }
 
-        } else {
+        } else if (m.status != STATUS_LOADING) {
             throw "Module '" + name + "' is implemented before. duplicate implementation";
         }
     }
