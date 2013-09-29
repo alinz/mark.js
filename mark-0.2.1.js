@@ -1,5 +1,5 @@
 /** @preserve mark.js: Tiny/Open framework for managing dependencies in JavaScript
- * version: 0.2.0
+ * version: 0.2.1
  * By Ali Najafizadeh
  * MIT Licensed.
  */
@@ -56,7 +56,7 @@
     }
 
     function getModule(name) {
-        return modules[name] = modules[name]? modules[name] : { name: name, status: STATUS_NOT_LOADED };
+        return modules[name] = modules[name]? modules[name] : { name: name, status: STATUS_NOT_LOADED, argsMap: {} };
     }
 
     function addCallback(event, fn) {
@@ -130,7 +130,7 @@
         if (!this.attach) {
             for (i = 0; i < this.args.length; i++) {
                 if (this.args[i] == dependencyName) {
-                    this.args[i] = dependency.obj;
+                    this.argsMap[dependencyName] = this.args[i] = dependency.obj;
                     break;
                 }
             }
@@ -138,7 +138,7 @@
 
         if (this.counter == 0) {
             if (!this.attach) {
-                this.obj = this.fn.apply(null, this.args);
+                this.obj = this.fn.apply(this.argsMap, this.args);
                 this.status = STATUS_LOADED;
                 trigger(this.name, [this.name]);
             } else {
@@ -195,7 +195,7 @@
 
             } else {
                 m.status = STATUS_LOADED;
-                m.obj = m.fn.apply(null, m.args);
+                m.obj = m.fn.apply(m.argsMap, m.args);
                 trigger(name, [name]);
             }
 
