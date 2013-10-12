@@ -259,6 +259,6 @@
                 throw THROW_UNKNOWN_FUNCTION_ARGUMENTS;
         }
     }
-    mark.VERSION = "0.2.0";
+    mark.VERSION = "0.2.1";
     window.mark = mark;
 }());
