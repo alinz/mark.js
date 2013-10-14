@@ -119,29 +119,83 @@ mark("Marionette", ["Backbone"], "Backbone");
 
 So as you can see there are 4 types of defining a library as SHIM. Let' start explaining each of them.
 
-1. Library that doesn't require any dependencies and the name of library exposed as global variable. As an example, `jQuery`. `jQuery` uses 2 signatures, `window.jQuery` and `window.$`. However, it is recommended to use jQuery in your application.
+1: Library that doesn't require any dependencies and the name of library exposed as global variable. As an example, `jQuery`. `jQuery` uses 2 signatures, `window.jQuery` and `window.$`. However, it is recommended to use jQuery in your application.
 
 ```
 mark("<name of library>");
 ```
 
-2. In second line, `underscore` library is another single depended library but it exposes itself to developer by `_`. So it needs to be registered to `mark.js` in such a way that as soon as `mark.js` loads that library load the proper variable for you. that the second signature comes into play. after defining name you have to tell `mark.js` loaded this library by that signature.
+2: In second line, `underscore` library is another single depended library but it exposes itself to developer by `_`. So it needs to be registered to `mark.js` in such a way that as soon as `mark.js` loads that library load the proper variable for you. that the second signature comes into play. after defining name you have to tell `mark.js` loaded this library by that signature.
 
 ```
 mark("<name of library>", "<global expose variable>");
 ```
 
-3. The third example is `Backbone`. As you know, `Backbone` requires `underscore` and `jQuery`. However, in our example, the name is also exposed as variable in global scope. So I don't need to tell `mark.js`. The only thing that I need to tell `mark.js` is `Backbone`'s dependencies. So dependencies must passed as an array of string.
+3: The third example is `Backbone`. As you know, `Backbone` requires `underscore` and `jQuery`. However, in our example, the name is also exposed as variable in global scope. So I don't need to tell `mark.js`. The only thing that I need to tell `mark.js` is `Backbone`'s dependencies. So dependencies must passed as an array of string.
 
 ```
 mark("<name of library>", ["<name of dependencies>"]);
 ```
 
-4. The last signature for loading code as SHIM is library has a dependencies and exposed as a different name in global scope. For example, `Marionette.js` is a library that extends `Backbone`. So it attaches itself to `Backbone`. So we are writing the name, dependencies and adding `Backbone` as global variable.
+4: The last signature for loading code as SHIM is library has a dependencies and exposed as a different name in global scope. For example, `Marionette.js` is a library that extends `Backbone`. So it attaches itself to `Backbone`. So we are writing the name, dependencies and adding `Backbone` as global variable.
 
 ```
 mark("<name of library>", ["<name of dependencies>"], "<global expose variable>");
 ```
+
+#### 3: Finding Path and Protocol
+So far we talked about how to create mark function and define code as SHIM to mark. However, how the heck `mark.js` knows where the code is. This is the interesting part of `mark.js`.
+
+
+The process is fairly simple. Everytime you requesting for a code, mark checks whether it has the object, if it's not, then check the path. if it does't find path, then it calls 2 functions, `mark:path` and `mark:protocol`.
+
+**NOTE:** These functions need to be defined by developer.  
+
+**NOTE:** Before jump into each function's details, in order to add/extend function to `mark.js`, check the following sequence.
+
+```javascript
+mark("name of your function", function () {
+
+});
+``` 
+
+**Note:** There are 2 reserved function's names that belong to `mark.js`.
+
+##### What is `mark:path`?
+This function is called if `mark.js` can't find any path for your requested module. `mark.js` passes requested module's name to that function as an argument and expects a path from it. This function should be in synchronize way. It means that you should not use any async call inside it to get the result. I'm planning to add this in feature.
+
+The name of function that you have to register is "mark:path".
+
+```javascript
+mark("mark:path", function (name) {
+	if (name == "Backbone") {
+		return "js/library/backbone.js";
+	}
+	
+	throw "Module '" + name + "' is not found.";
+});
+``` 
+
+This is very silly way of defining `make:path` function. I will show you how to make it more generic.
+
+#### What is `mark:protocol`?
+This function is called right after `mark:path`. `mark.js` is passing name and path of requested module to that function in order to find out how to load that module. This function needs to be implemented as synchronize way. This function needs to return a name of method which responsible to load the content.
+
+```javascript
+mark("mark:protocol", function (name, path) {
+	if (path.indexOf(".js")) {
+		return "scriptTag";
+	}
+	
+	throw "Module '" + name + "' is not recognized as valid type.";
+});
+``` 
+
+
+
+
+
+
 
 
 
