@@ -1,5 +1,5 @@
-mark.js
-=======
+#mark.js
+
 
 Open Dependency Loader for JavaScript
 
@@ -29,5 +29,29 @@ You will see how I solved this by using `mark.js`.
 
 Use case 2
 --
-I want developer to controller how they want to load the file, either using Ajax, Script Tag or even WebSocket. in their applications, not libraries. I know that you can add any feature to `Require.js` by using Plugin but, You have to remember that, it has learning curve. I want whoever using `mark.js`, just add their code, functionality and they can easily start writing their code. 
+I want developer to controller how they want to load the file, either using Ajax, Script Tag or even WebSocket. in their applications, not libraries. I know that you can add any feature to `Require.js` by using Plugin but, You have to remember that, it has learning curve. I want whoever using `mark.js`, just add their code, functionality and they can easily start writing their code. So in nutshell, you locked with their code base.
+
+**NOTE:** have you thought about loading JavaScriot, css and template files using `websocket`? I think you can easily write one by using `mark.js`.
+
+##Rise of mark.js
+In nut shell, `mark.js` is just a dependency tracker. Basically, it knows that your code is require couple of other code before executing.
+
+It doesn't know the path, or how to load it. This is developer responsibility. of course I will provide sample codes so sit back and enjoy the reading. :D
+
+`mark.js` has set's of APIs which you can use to add, and extend its functioanlity. I tried hard to use signature approach, which using mark main function only to accepts all types of configurations. 
+
+###API
+##### 1: Adding SHIM libraries
+There are couple of signature I found common in order to load global libraries such as `Backbone`, `jQuery`, etc… 
+
+
+```javascript
+mark("jQuery");
+mark("underscore", "_");
+mark("Backbone", ["jQuery", "underscore"]);
+mark("Marionette", ["Backbone"], "Backbone");
+```
+
+
+
 
