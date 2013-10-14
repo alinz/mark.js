@@ -178,7 +178,7 @@ mark("mark:path", function (name) {
 
 This is very silly way of defining `make:path` function. I will show you how to make it more generic.
 
-#### What is `mark:protocol`?
+##### What is `mark:protocol`?
 This function is called right after `mark:path`. `mark.js` is passing name and path of requested module to that function in order to find out how to load that module. This function needs to be implemented as synchronize way. This function needs to return a name of method which responsible to load the content.
 
 ```javascript
