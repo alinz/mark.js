@@ -42,7 +42,66 @@ It doesn't know the path, or how to load it. This is developer responsibility. o
 
 ##API
 #### 1: mark function
+If you want to define your mark function, use the following code:
 
+
+```javascript
+mark("Sample1", [], function () {
+	function say(message) {
+		alert(message);
+	}
+	
+	return { say: say };
+});
+```
+
+In this example, we are creating a code that does't have any dependencies and expose itself as Sample1.
+
+Let's make another example that uses the above code.
+
+```javascript
+mark("Sample2", ["Sample1"], function (Sample1) {
+	Sample1.say("Sample2 is loaded.");
+});
+```
+
+**NOTE:** it is absolutely fine if your mark function does't return any object. However, remember if another mark function depends on that mark function, you will get undefined variable.
+
+**NOTE:** all the dependencies are injected to mark function in order. as an example,
+
+```javascript
+mark("Sample1", [], function () {
+	return "This is Sample1";
+});
+
+mark("Sample2", [], function () {
+	return "This is Sample2";
+});
+
+mark("Sample3", ["Sample1", "Sample2"], function (Sample1, Sample2) {
+	alert(Sample1);
+	alert(Sample2);
+});
+``` 
+
+**NOTE:** if the number of dependencies for mark object becomes large, mark also inject dependencies as map to `this` pointer. as an example
+
+```javascript
+mark("Sample1", [], function () {
+	return "This is Sample1";
+});
+
+mark("Sample2", [], function () {
+	return "This is Sample2";
+});
+
+mark("Sample3", ["Sample1", "Sample2"], function () {
+	var dependenciesMap = this;
+
+	alert(dependenciesMap["Sample1"]);
+	alert(dependenciesMap["Sample1"]);
+});
+``` 
 
 #### 2: Adding library as SHIM 
 There are couple of signature I found common in order to load global libraries such as `Backbone`, `jQuery`, etc… 
