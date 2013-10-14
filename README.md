@@ -40,8 +40,11 @@ It doesn't know the path, or how to load it. This is developer responsibility. o
 
 `mark.js` has set's of APIs which you can use to add, and extend its functioanlity. I tried hard to use signature approach, which using mark main function only to accepts all types of configurations. 
 
-###API
-##### 1: Adding SHIM libraries
+##API
+#### 1: mark function
+
+
+#### 2: Adding library as SHIM 
 There are couple of signature I found common in order to load global libraries such as `Backbone`, `jQuery`, etc… 
 
 
@@ -51,6 +54,38 @@ mark("underscore", "_");
 mark("Backbone", ["jQuery", "underscore"]);
 mark("Marionette", ["Backbone"], "Backbone");
 ```
+
+**NOTE:** You don't see any path. You will see how `mark.js` help you finding the path.
+
+
+So as you can see there are 4 types of defining a library as SHIM. Let' start explaining each of them.
+
+1. Library that doesn't require any dependencies and the name of library exposed as global variable. As an example, `jQuery`. `jQuery` uses 2 signatures, `window.jQuery` and `window.$`. However, it is recommended to use jQuery in your application.
+
+```
+mark("<name of library>");
+```
+
+2. In second line, `underscore` library is another single depended library but it exposes itself to developer by `_`. So it needs to be registered to `mark.js` in such a way that as soon as `mark.js` loads that library load the proper variable for you. that the second signature comes into play. after defining name you have to tell `mark.js` loaded this library by that signature.
+
+```
+mark("<name of library>", "<global expose variable>");
+```
+
+3. The third example is `Backbone`. As you know, `Backbone` requires `underscore` and `jQuery`. However, in our example, the name is also exposed as variable in global scope. So I don't need to tell `mark.js`. The only thing that I need to tell `mark.js` is `Backbone`'s dependencies. So dependencies must passed as an array of string.
+
+```
+mark("<name of library>", ["<name of dependencies>"]);
+```
+
+4. The last signature for loading code as SHIM is library has a dependencies and exposed as a different name in global scope. For example, `Marionette.js` is a library that extends `Backbone`. So it attaches itself to `Backbone`. So we are writing the name, dependencies and adding `Backbone` as global variable.
+
+```
+mark("<name of library>", ["<name of dependencies>"], "<global expose variable>");
+```
+
+
+
 
 
 
