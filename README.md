@@ -179,7 +179,7 @@ mark("mark:path", function (name) {
 This is very silly way of defining `make:path` function. I will show you how to make it more generic.
 
 ##### What is `mark:protocol`?
-This function is called right after `mark:path`. `mark.js` is passing name and path of requested module to that function in order to find out how to load that module. This function needs to be implemented as synchronize way. This function needs to return a name of method which responsible to load the content.
+This function is called right after `mark:path`. `mark.js` is passing name and path of requested module in order to find out how to load that module. This function needs to be implemented as synchronize way. This function needs to return a name of method which responsible to load the content.
 
 ```javascript
 mark("mark:protocol", function (name, path) {
@@ -190,6 +190,135 @@ mark("mark:protocol", function (name, path) {
 	throw "Module '" + name + "' is not recognized as valid type.";
 });
 ``` 
+
+#### What is `custom function`?
+Once you setup those two function, it's time to work on actual work. Let's make an example. Imagine that mark:protocol is returning scriptTag. So now it is time to create a `custom function` with name of  `scriptTag`.
+
+```javascript
+mark("protocol:scriptTag", function (path) {
+	...
+});
+```
+
+As you can see every time a module is selected to be loaded as `scriptTag` or any other protocol, path will be passed to as only argument.
+
+Now the question is, how does `mark.js` know that the requested file has been loaded. Since `mark.js` has access to all custom registered functions, it injects two methods, `done` and `failed`, to `this` pointer. So you can write ajax or any asynchronied functions and method to implement your code. So let's complete the above example.
+
+```javascript
+mark("protocol:scriptTag", function (path) {
+    var that = this,
+        script = document.createElement('script');
+
+    script.async = true;
+    script.setAttribute('type', 'text/javascript');
+
+    //IE callback specific
+    script.onreadystatechange = function () {
+        if (this.readyState == 'loaded') {
+            that.done();
+        }
+    };
+
+    //other browsers callback
+    script.onload = function () {
+        that.done();
+    };
+
+    script.onerror = function () {
+        console.log("loading '" + path + "' caused a problem.");
+        that.failed();
+    };
+
+    script.src = path;
+    document.documentElement.appendChild(script);
+});
+```
+
+I think I don't need to explain the code. Code itself is explanatory. 
+
+Let's make another example for ajax protocol.
+
+**NOTE:** You can't use jQuery ajax call. I know it sounds not COOL, but how would you load jQuery itself with jQuery? Huh???? And I think we depends on jQuery ajax so much that we forgot how easy it is to create a ajax. To me world of IE 6 and 7 are long gone. It might sounds harsh but if you are still using ie 6 and 7, you better off this page quickly. 
+
+```javascript
+function markAjaxFunction(path, fn) {
+    var xhr;
+    if (window.XMLHttpRequest) {
+        xhr = new XMLHttpRequest();
+    }
+    if (xhr === false) {
+        return null;
+    }
+
+    path += '?' + new Date().getTime();
+
+    xhr.open('GET', path, true);
+    xhr.onreadystatechange = function () {
+        if (this.readyState == 4) {
+            if (this.status > 199 && this.status < 300) {
+                //eval(xhr.responseText);
+                //that.done();
+                fn(xhr.responseText);
+            } else if (this.status > 399) {
+                fn({ error: true });
+            }
+        }
+    };
+
+    xhr.send();
+    return xhr;
+}
+
+mark("protocol:ajaxScript", function (path) {
+    var that = this;
+    markAjaxFunction(path, function (message) {
+        if (message.error) {
+            console.log("The following path is not found: " + path);
+            that.failed();
+        }
+        eval(message);
+        that.done();
+    });
+});
+```
+
+So now why I called it `ajaxScript` but not `ajax`? well, as I mentioned before, this is not a javascript loader. This is a dependency loader. It means that you can load any types of file.and by now you know that ajax can be used to load any contents that can be transferred as text.
+
+So, what else I can download and inject to my code? As you may notice, Templates. These days, templates are all over our web app. We are kind of proud that we moved rendering to client rather than in server. So how can I modify the existing code to accept and load template for me? It is easy. as you may notice by now, `markAjaxFunction` is a generic ajax code. So here's template code which uses same function.
+
+```javascript
+mark("protocol:template", function (path) {
+    var that = this;
+    markAjaxFunction(path, function (templateString) {
+        if (message.error) {
+            console.log("The following path is not found: " + path);
+            that.failed();
+        }
+        that.done(templateString);
+    });
+});
+``` 
+
+I simply used the same function and get the response as text. Now the interesting part is I can compile it before during the load. let's modified the `that.done(templateString)`.
+
+So instead of the above code, I'm going to use `underscore.js` tempting system.
+
+```javascript
+mark("protocol:template", function (path) {
+    var that = this;
+    markAjaxFunction(path, function (templateString) {
+        if (message.error) {
+            console.log("The following path is not found: " + path);
+            that.failed();
+        }
+        that.done(_.template(templateString);
+    });
+});
+``` 
+
+So now when I request a template, mark will cache and return compiled template code.
+
+
 
 
 
