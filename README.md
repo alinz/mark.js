@@ -7,7 +7,7 @@ I finally found a time to write about my new project. I has been uploaded to Git
 
 So, let's cut the chase and get into the real exciting stuff.
 
-Why a brand new Dependency Manager for Javascript?
+Why a brand new Dependency Manager for Javascript and web content?
 --
 I'm not sick and also don't have time to write, duplicate an existing library. The whole purpose of this library to solve one or many problem which I faced when I was working with couple of dependency libraries in JavaScript.
 
