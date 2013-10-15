@@ -318,6 +318,24 @@ mark("protocol:template", function (path) {
 
 So now when I request a template, mark will cache and return compiled template code.
 
+**NOTE:** WHAT??? you can use underscore but you can't use jQuery ajax to load the content? Just take a deep breath and then start reading…
+
+Well, this is the most confusing part of `mark.js`. You have to remember that script are loaded first before you can start loading templates. How can I do that. Well, we have to write a bootstrap for it. Usually, when your app is starting up, you want to load couple of important module is loaded before you are doing anything else. In other hand, consider this as your `main` function of your app.
+
+Let's take a look at the following example.
+
+```javascript
+mark("Main", ["underscore", "jQuery", "MyApp"], function (_, $, MyApp) {
+	
+	//do some initialization
+	
+	MyApp.start();
+	
+});
+```
+
+It is that simple. :D
+
 
 
 
